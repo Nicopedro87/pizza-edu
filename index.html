@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>PIZZA EDU - Pedidos</title>
 <style>
-:root{--accent:#111;--muted:#6b7280;--line:#e5e7eb;--ok:#16a34a;--warn:#b45309;--bg:#fff}
-*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:#0f172a;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,'Noto Sans','Liberation Sans',sans-serif}
+:root{--accent:#111;--muted:#6b7280;--line:#e5e7eb;--bg:#fff}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#0f172a;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,'Noto Sans',sans-serif}
 img{max-width:100%;display:block}.container{max-width:960px;margin:0 auto;padding:16px}
 header.hero{border:1px solid var(--line);border-radius:16px;overflow:hidden}
-header.hero img{width:100%;height:280px;object-fit:cover}.branding{padding:16px;display:flex;flex-direction:column;gap:6px}
+header.hero img{width:100%;height:260px;object-fit:cover}.branding{padding:16px;display:flex;flex-direction:column;gap:6px}
 .branding h1{margin:0;font-size:clamp(28px,4.5vw,42px);letter-spacing:.5px;color:var(--accent)}.branding p{margin:0;color:var(--muted);font-weight:500}
 
 details{border:1px solid var(--line);border-radius:14px;background:#fff;margin:14px 0;overflow:hidden}
@@ -33,20 +33,33 @@ summary::-webkit-details-marker{display:none}.chev{transition:transform .2s ease
 .helper{font-size:14px;color:var(--muted)}
 .pay-details{margin:4px 0 8px}
 
-.cart{position:sticky;bottom:0;background:#ffffffdd;backdrop-filter:blur(4px);border-top:1px solid var(--line);padding:12px 0;margin-top:20px}
-.cart .inner{max-width:960px;margin:0 auto;padding:0 16px;display:grid;gap:10px}.cart h2{margin:0;font-size:18px}
-.cart-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}.cart-item{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--line)}
-.total{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:18px}
-.payment{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.pay-btn{padding:10px 14px;border-radius:12px;font-weight:800;border:0;cursor:pointer}.pay-efectivo{background:#16a34a;color:#fff}.pay-mp{background:#0284c7;color:#fff}
+.cart{border:1px solid var(--line);border-radius:14px;margin-top:14px;padding:12px}
+.cart h2{margin:0 0 8px;font-size:18px}
+.cart-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;border-top:1px dashed var(--line);padding-top:8px}
+.cart-item{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.total{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:18px;margin-top:8px}
+.payment{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}
+.pay-btn{padding:10px 14px;border-radius:12px;font-weight:800;border:0;cursor:pointer}.pay-efectivo{background:#111;color:#fff}
 .badge{font-size:12px;color:#fff;background:#b45309;border-radius:999px;padding:2px 8px;margin-left:8px}.muted{color:#6b7280}
+
+/* Wizard */
+.wizard{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:8px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.step{padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-weight:700;color:#374151}
+.step.active{background:#111;color:#fff;border-color:#111}
+.step.done{background:#1110a;color:#111;border-color:#1112}
+.nav-wizard{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+
+/* Subtotal fijo abajo */
+body{padding-bottom:60px}
+.subtotal-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;z-index:50}
+.subtotal-bar .line{max-width:960px;margin:0 auto;display:flex;justify-content:flex-end;font-weight:800}
 </style>
 </head>
 <body>
 <div class="container">
 
   <header class="hero">
-    <!-- Cambiá la ruta si tu imagen tiene otro nombre -->
     <img src="img-pizza-edu.jpg" alt="Pizza PIZZA EDU"/>
     <div class="branding">
       <h1>PIZZA EDU</h1>
@@ -54,203 +67,215 @@ summary::-webkit-details-marker{display:none}.chev{transition:transform .2s ease
     </div>
   </header>
 
-  <!-- PROMOCIONES (estático + data-id; el JS conecta botones y precios) -->
-  <details open>
-    <summary>PROMOCIONES <span class="chev">▾</span></summary>
-    <div class="section-body">
-      <div class="item-row" data-id="promo-3-muzza">
-        <div class="item-title">3 muzza</div>
-        <div class="price" data-price>--</div>
-        <div class="qty">
-          <button class="btn minus">−</button>
-          <strong class="q">0</strong>
-          <button class="btn plus">+</button>
+  <!-- WIZARD: ahora 3 pasos -->
+  <div class="wizard">
+    <div class="steps">
+      <div class="step" data-stepbtn="1">1) Pedido</div>
+      <div class="step" data-stepbtn="2">2) Datos</div>
+      <div class="step" data-stepbtn="3">3) Pago</div>
+    </div>
+    <div class="nav-wizard">
+      <button class="btn" id="prevBtn">← Anterior</button>
+      <button class="btn" id="nextBtn">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: ELECCIÓN DEL PEDIDO -->
+  <section data-step="1">
+    <details open>
+      <summary>PROMOCIONES <span class="chev">▾</span></summary>
+      <div class="section-body">
+        <div class="item-row" data-id="promo-3-muzza">
+          <div class="item-title">3 muzza</div>
+          <div class="price" data-price>--</div>
+          <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
+        </div>
+        <div class="item-row" data-id="promo-1-muzza-1-especial">
+          <div class="item-title">1 muzza - 1 especial</div>
+          <div class="price" data-price>--</div>
+          <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
+        </div>
+        <div class="item-row" data-id="promo-1-muzza-6-emp">
+          <div class="item-title">1 muzza - 6 empanadas</div>
+          <div class="price" data-price>--</div>
+          <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
+        </div>
+        <div class="item-row" data-id="promo-1-especial-6-emp">
+          <div class="item-title">1 especial - 6 empanadas</div>
+          <div class="price" data-price>--</div>
+          <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
         </div>
       </div>
-      <div class="item-row" data-id="promo-1-muzza-1-especial">
-        <div class="item-title">1 muzza - 1 especial</div>
-        <div class="price" data-price>--</div>
-        <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
+    </details>
+
+    <details>
+      <summary>PIZZAS <span class="chev">▾</span></summary>
+      <div class="section-body">
+        <div class="item-row" data-id="pizza-muzza"><div class="item-title">Muzza</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-jamon"><div class="item-title">Jamón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-jamon-morron"><div class="item-title">Jamón y morrón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-calabresa"><div class="item-title">Calabresa</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-panceta"><div class="item-title">Panceta</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-panceta-cebolla-caram"><div class="item-title">Panceta y cebolla caram.</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-napolitana"><div class="item-title">Napolitana</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-napolitana-jamon"><div class="item-title">Napolitana con jamón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-huevo"><div class="item-title">Huevo</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-fugazzetta"><div class="item-title">Fugazzetta</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
+        <div class="item-row" data-id="pizza-roquefort"><div class="item-title">Roquefort</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
       </div>
-      <div class="item-row" data-id="promo-1-muzza-6-emp">
-        <div class="item-title">1 muzza - 6 empanadas</div>
-        <div class="price" data-price>--</div>
-        <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
-      </div>
-      <div class="item-row" data-id="promo-1-especial-6-emp">
-        <div class="item-title">1 especial - 6 empanadas</div>
-        <div class="price" data-price>--</div>
-        <div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div>
-      </div>
-    </div>
-  </details>
+    </details>
 
-  <!-- PIZZAS -->
-  <details>
-    <summary>PIZZAS <span class="chev">▾</span></summary>
-    <div class="section-body">
-      <div class="item-row" data-id="pizza-muzza"><div class="item-title">Muzza</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-jamon"><div class="item-title">Jamón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-jamon-morron"><div class="item-title">Jamón y morrón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-calabresa"><div class="item-title">Calabresa</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-panceta"><div class="item-title">Panceta</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-panceta-cebolla-caram"><div class="item-title">Panceta y cebolla caram.</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-napolitana"><div class="item-title">Napolitana</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-napolitana-jamon"><div class="item-title">Napolitana con jamón</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-huevo"><div class="item-title">Huevo</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-fugazzetta"><div class="item-title">Fugazzetta</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-      <div class="item-row" data-id="pizza-roquefort"><div class="item-title">Roquefort</div><div class="price" data-price>--</div><div class="qty"><button class="btn minus">−</button><strong class="q">0</strong><button class="btn plus">+</button></div></div>
-    </div>
-  </details>
-
-  <!-- EMPANADAS Y CANASTITAS -->
-  <details>
-    <summary>EMPANADAS Y CANASTITAS <span class="chev">▾</span></summary>
-    <div class="section-body" id="empanadas">
-      <div class="item-row" data-id="emp-unidad">
-        <div>
-          <div class="item-title">Por unidad</div>
-          <div class="muted">Elegí 1 sabor</div>
-        </div>
-        <div class="price" id="price-emp-unidad">$ 0</div>
-        <button class="pill" onclick="openBuilder('unidad')">Seleccionar</button>
-      </div>
-      <div class="item-row" data-id="emp-media">
-        <div>
-          <div class="item-title">Media docena</div>
-          <div class="muted">Elegí 6 sabores</div>
-        </div>
-        <div class="price" id="price-emp-media">$ 0</div>
-        <button class="pill" onclick="openBuilder('media')">Seleccionar</button>
-      </div>
-      <div class="item-row" data-id="emp-docena">
-        <div>
-          <div class="item-title">Docena</div>
-          <div class="muted">Elegí 12 sabores</div>
-        </div>
-        <div class="price" id="price-emp-docena">$ 0</div>
-        <button class="pill" onclick="openBuilder('docena')">Seleccionar</button>
-      </div>
-    </div>
-  </details>
-
-  <!-- DATOS DEL CLIENTE -->
-  <section class="customer">
-  <h2 style="margin: 18px 0 8px;">Datos para el pedido</h2>
-
-  <!-- ✅ activamos autofill del navegador -->
-  <form id="customerForm" class="form-grid" autocomplete="on">
-    <div class="field">
-      <label for="inpNombre">Tu nombre</label>
-      <input id="inpNombre"
-             name="name"
-             autocomplete="name"
-             autocapitalize="words"
-             spellcheck="false"
-             type="text"
-             placeholder="Ej: Juan Pérez" required>
-    </div>
-
-    <div class="field">
-      <label for="inpWhatsapp">Número de WhatsApp</label>
-      <input id="inpWhatsapp"
-             name="tel"
-             autocomplete="tel-national"
-             inputmode="tel"
-             type="tel"
-             placeholder="Ej: 11 5555-5555" required>
-    </div>
-
-    <div class="field" style="grid-column: 1 / -1;">
-      <label for="inpDireccion">Dirección</label>
-      <input id="inpDireccion"
-             name="street-address"
-             autocomplete="street-address"
-             autocapitalize="words"
-             type="text"
-             placeholder="Calle 123, piso/depto" required>
-    </div>
-
-    <div class="field" style="grid-column: 1 / -1;">
-      <label for="inpAclaracion">Aclaración (opcional)</label>
-      <textarea id="inpAclaracion"
-                name="address-line2"
-                autocomplete="address-line2"
-                rows="2"
-                placeholder="Ej: Enfrente del colegio Nº 14"></textarea>
-    </div>
-  </form>
-</section>
-
-  <!-- CARRITO + PAGO -->
-  <section class="cart" aria-live="polite">
-    <div class="inner">
-      <h2>Tu pedido</h2>
-      <div id="cartList" class="cart-list"></div>
-
-      <div class="payment">
-        <label><input type="radio" name="pay" value="efectivo" checked> Efectivo</label>
-        <label><input type="radio" name="pay" value="mp"> Mercado Pago</label>
-      </div>
-
-      <!-- DETALLES DEL PAGO -->
-      <div id="payDetails" class="pay-details">
-        <div id="payEfectivo" hidden>
-          <div class="field" style="max-width: 320px;">
-            <label for="inpPagaCon">¿Con cuánto pagás?</label>
-            <input id="inpPagaCon" type="number" inputmode="decimal" placeholder="Ej: 10000">
-            <small class="muted">Calculamos el vuelto automáticamente en el mensaje.</small>
+    <details>
+      <summary>EMPANADAS Y CANASTITAS <span class="chev">▾</span></summary>
+      <div class="section-body" id="empanadas">
+        <div class="item-row" data-id="emp-unidad">
+          <div>
+            <div class="item-title">Por unidad</div>
+            <div class="muted">Elegí sabores. Cantidad libre.</div>
           </div>
+          <div class="price" id="price-emp-unidad">$ 0</div>
+          <button class="pill" onclick="openBuilder('unidad')">Seleccionar</button>
         </div>
-
-        <div id="payMP" hidden class="helper">
-          <div id="mpText" class="muted" style="font-weight:600;"></div>
-          <small class="muted">Alias: <strong>Pedro-mp</strong></small>
+        <div class="item-row" data-id="emp-media">
+          <div>
+            <div class="item-title">Media docena</div>
+            <div class="muted">Elegí 6 sabores por cada media docena.</div>
+          </div>
+          <div class="price" id="price-emp-media">$ 0</div>
+          <button class="pill" onclick="openBuilder('media')">Seleccionar</button>
+        </div>
+        <div class="item-row" data-id="emp-docena">
+          <div>
+            <div class="item-title">Docena</div>
+            <div class="muted">Elegí 12 sabores por cada docena.</div>
+          </div>
+          <div class="price" id="price-emp-docena">$ 0</div>
+          <button class="pill" onclick="openBuilder('docena')">Seleccionar</button>
         </div>
       </div>
+    </details>
+  </section>
 
+  <!-- STEP 2: DATOS -->
+  <section data-step="2" class="hidden">
+    <section class="customer">
+      <h2 style="margin: 8px 0;">Datos para el pedido</h2>
+      <form id="customerForm" class="form-grid" autocomplete="on">
+        <div class="field">
+          <label for="inpNombre">Tu nombre</label>
+          <input id="inpNombre" name="name" autocomplete="name" autocapitalize="words" spellcheck="false" type="text" placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div class="field">
+          <label for="inpWhatsapp">Número de WhatsApp</label>
+          <input id="inpWhatsapp" name="tel" autocomplete="tel-national" inputmode="tel" type="tel" placeholder="Ej: 11 5555-5555" required>
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="inpDireccion">Dirección</label>
+          <input id="inpDireccion" name="street-address" autocomplete="street-address" autocapitalize="words" type="text" placeholder="Calle 123, piso/depto" required>
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="inpAclaracion">Aclaración (opcional)</label>
+          <textarea id="inpAclaracion" name="address-line2" autocomplete="address-line2" rows="2" placeholder="Ej: Enfrente del colegio Nº 14"></textarea>
+        </div>
+      </form>
+    </section>
+  </section>
+
+  <!-- STEP 3: PAGO -->
+  <section data-step="3" class="hidden">
+    <h2 style="margin:0 0 8px;">Forma de pago</h2>
+    <div class="payment">
+      <label><input type="radio" name="pay" value="efectivo" checked> Efectivo</label>
+      <label><input type="radio" name="pay" value="mp"> Mercado Pago</label>
+    </div>
+    <div id="payDetails" class="pay-details">
+      <div id="payEfectivo">
+        <div class="field" style="max-width: 320px;">
+          <label for="inpPagaCon">¿Con cuánto pagás?</label>
+          <input id="inpPagaCon" type="number" inputmode="decimal" placeholder="Ej: 10000">
+          <small class="muted">Calculamos el vuelto en la comanda.</small>
+        </div>
+      </div>
+      <div id="payMP" hidden class="helper">
+        <div id="mpText" class="muted" style="font-weight:600;"></div>
+        <small class="muted">Alias: <strong>Pedro-mp</strong></small>
+      </div>
+    </div>
+
+    <div class="cart">
+      <h2>Resumen</h2>
+      <div id="cartList" class="cart-list"></div>
       <div class="total"><span>Total</span><span id="totalTxt">$ 0</span></div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="pay-btn pay-efectivo" onclick="finalizar()">Finalizar pedido</button>
+
+      <div class="actions">
+        <button class="pay-btn pay-efectivo" id="finalBtn">Finalizar pedido</button>
       </div>
-      <small class="muted">Los precios se cargan desde Google Sheets. Si no aparecen, revisá la consola (F12 → Console).</small>
     </div>
   </section>
 
 </div>
 
-<!-- MODAL BUILDER -->
+<!-- MODAL BUILDER (Empanadas/Canastitas) -->
 <dialog id="builder" style="border:0;border-radius:16px;padding:0;width:min(880px,92vw)">
   <div style="padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
     <strong id="builderTitle">Elegí tus sabores</strong>
     <button class="btn" onclick="closeBuilder()">✕</button>
   </div>
   <div style="padding:16px">
+    <div class="field" style="max-width:220px;margin:0 0 8px;">
+      <label for="builderQty" id="qtyLabel">Cantidad</label>
+      <input id="builderQty" type="number" min="1" value="1">
+    </div>
     <div id="faltan" class="builder-note"></div>
     <div class="sabores-grid" id="saboresGrid"></div>
     <div class="cta">
-      <button id="agregarCombo" class="btn primary" disabled>Agregar al carrito</button>
+      <button id="agregarCombo" class="btn primary" disabled>Confirmar selección</button>
       <button class="btn" onclick="resetSabores()">Reiniciar</button>
     </div>
   </div>
 </dialog>
 
+<!-- MODAL PICKER (Especial de pizza) -->
+<dialog id="pickerEspecial" style="border:0;border-radius:16px;padding:0;width:min(520px,92vw)">
+  <div style="padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+    <strong>Elegí tu pizza especial (1)</strong>
+    <button class="btn" onclick="document.getElementById('pickerEspecial').close()">✕</button>
+  </div>
+  <div style="padding:16px">
+    <div class="sabores-grid" id="espGrid"></div>
+    <div class="cta">
+      <button id="confirmEsp" class="btn primary" disabled>Confirmar</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- MODAL RESUMEN/CONFIRMACIÓN -->
+<dialog id="summaryDlg" style="border:0;border-radius:16px;padding:0;width:min(700px,92vw)">
+  <div style="padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+    <strong>Revisá tu pedido</strong>
+    <button class="btn" onclick="document.getElementById('summaryDlg').close()">✕</button>
+  </div>
+  <div style="padding:16px">
+    <div id="summaryBody" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div class="total" style="margin-top:10px;"><span>Total</span><span id="sumTotalTxt">$ 0</span></div>
+    <div class="actions" style="margin-top:12px;">
+      <button class="btn" onclick="document.getElementById('summaryDlg').close()">Volver</button>
+      <button class="btn" id="confirmSendBtn" style="background:#111;color:#fff;border:0">Enviar por WhatsApp</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Subtotal fijo abajo -->
+<div class="subtotal-bar">
+  <div class="line">Subtotal: <span id="subtotalBarTxt" style="margin-left:6px">$ 0</span></div>
+</div>
+
 <script>
-/* =================== CONFIG PRECIOS (Google Sheets) =================== */
-/* Cambiá 'sheet=precios' por el nombre exacto de tu pestaña si fuera necesario */
-// ⬇️ pega esto:
-// REEMPLAZÁ la constante actual por esta:
-const PRICES_SHEET_URL =
-  "https://opensheet.elk.sh/13M5CpzElPosI_bTuzFyTgwCjNKd6LOVspKGWROSAhhc/precios";
+/* ===== CONFIG ===== */
+const PRICES_SHEET_URL = "https://opensheet.elk.sh/13M5CpzElPosI_bTuzFyTgwCjNKd6LOVspKGWROSAhhc/precios";
+const WHATSAPP_PHONE = "5491168604990"; // tu número (AR): 54 9 11 ...
 
-
-
-
-
-
-
-
-/* =================== CATÁLOGO =================== */
+/* ===== CATÁLOGO ===== */
 const CATALOG = {
   promos: [
     { id: "promo-3-muzza", name: "3 muzza", price: 0 },
@@ -260,8 +285,8 @@ const CATALOG = {
   ],
   pizzas: [
     { id: "pizza-muzza", name: "Muzza", price: 0 },
-    { id: "pizza-jamon-morron", name: "Jamón y morrón", price: 0 },
     { id: "pizza-jamon", name: "Jamón", price: 0 },
+    { id: "pizza-jamon-morron", name: "Jamón y morrón", price: 0 },
     { id: "pizza-calabresa", name: "Calabresa", price: 0 },
     { id: "pizza-panceta", name: "Panceta", price: 0 },
     { id: "pizza-panceta-cebolla-caram", name: "Panceta y cebolla caram.", price: 0 },
@@ -277,41 +302,42 @@ const CATALOG = {
     { id: "emp-docena", name: "Docena", size: 12, price: 0 }
   ],
   saboresEmpanadas: ["Carne","Pollo","Jamón y queso","Pollo y roquefort","Jamón y roquefort","Panceta y ciruela"],
-  saboresCanastitas: ["Choclo","Choclo y cebolla","Verdura y queso","Cebolla y roquefort","Caprese","Tomate y huevo","Cebolla y queso"]
+  saboresCanastitas: ["Choclo","Choclo y cebolla","Verdura y queso","Cebolla y roquefort","Caprese","Tomate y huevo","Cebolla y queso"],
+  especiales: ["Jamón y morrón","Calabresa","Napolitana"]
+};
+const PROMO_RULES = {
+  "promo-1-muzza-1-especial": { especial: true },
+  "promo-1-especial-6-emp":   { especial: true, emp: 6 },
+  "promo-1-muzza-6-emp":      { emp: 6 }
 };
 
-/* =================== ESTADO + HELPERS =================== */
+/* ===== ESTADO + HELPERS ===== */
 const cart = [];
 const qtyState = new Map();
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
-// ====== Autoguardado de datos del cliente ======
-const CUSTOMER_KEY = "pizzaedu.customer";
+const $ = sel=>document.querySelector(sel);
+const $$ = sel=>document.querySelectorAll(sel);
+const formatMoney = (n=0) => "$ " + (Number(n||0)).toLocaleString("es-AR");
+const slug = s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const CUSTOMER_KEY="pizzaedu.customer";
 
 function saveCustomer(){
   const payload = {
-    name: document.getElementById('inpNombre')?.value || "",
-    tel:  document.getElementById('inpWhatsapp')?.value || "",
-    addr: document.getElementById('inpDireccion')?.value || "",
-    note: document.getElementById('inpAclaracion')?.value || "",
+    name: $('#inpNombre')?.value || "",
+    tel:  $('#inpWhatsapp')?.value || "",
+    addr: $('#inpDireccion')?.value || "",
+    note: $('#inpAclaracion')?.value || "",
   };
   localStorage.setItem(CUSTOMER_KEY, JSON.stringify(payload));
 }
-
 function loadCustomer(){
   try{
-    const data = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}");
-    if (data.name) document.getElementById('inpNombre').value = data.name;
-    if (data.tel)  document.getElementById('inpWhatsapp').value = data.tel;
-    if (data.addr) document.getElementById('inpDireccion').value = data.addr;
-    if (data.note) document.getElementById('inpAclaracion').value = data.note;
-  }catch(e){}
+    const d=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"{}");
+    if(d.name) $('#inpNombre').value=d.name;
+    if(d.tel)  $('#inpWhatsapp').value=d.tel;
+    if(d.addr) $('#inpDireccion').value=d.addr;
+    if(d.note) $('#inpAclaracion').value=d.note;
+  }catch(_){}
 }
-
-const formatMoney = (n=0) => "$ " + (Number(n||0)).toLocaleString("es-AR");
-const slug = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-
-/* Busca item por id en el catálogo */
 function findById(id){
   return CATALOG.promos.find(x=>x.id===id) ||
          CATALOG.pizzas.find(x=>x.id===id) ||
@@ -319,7 +345,7 @@ function findById(id){
          {id, name:id, price:0};
 }
 
-/* Conecta +/− de filas estáticas */
+/* Conecta +/− y maneja promos con selección */
 function wireStaticRows() {
   document.querySelectorAll(".item-row[data-id]").forEach(row => {
     const id = row.getAttribute("data-id");
@@ -335,10 +361,23 @@ function wireStaticRows() {
     let q = qtyState.get(id) || 0;
     if (qEl) qEl.textContent = q;
 
-    plus && plus.addEventListener("click", () => {
-      q = (q || 0) + 1;
-      qtyState.set(id, q);
-      if (qEl) qEl.textContent = q;
+    plus && plus.addEventListener("click", async () => {
+      if (PROMO_RULES[id]) {
+        const rule = PROMO_RULES[id];
+        let parts = [];
+        if (rule.especial) {
+          const esp = await pickEspecial(); if(!esp) return;
+          parts.push(`Especial: ${esp}`);
+        }
+        if (rule.emp) {
+          const emp = await chooseEmpanadas(rule.emp); if(!emp) return;
+          parts.push(`Empanadas: ${emp}`);
+        }
+        upsertCart(id+":"+Date.now(), it.name, 1, it.price, parts.join(" | "));
+        q = (q||0)+1; qtyState.set(id,q); if(qEl) qEl.textContent=q;
+        return;
+      }
+      q = (q || 0) + 1; qtyState.set(id, q); if (qEl) qEl.textContent = q;
       upsertCart(id, it.name, q, it.price);
     });
 
@@ -351,7 +390,6 @@ function wireStaticRows() {
   });
 }
 
-/* Inserta/actualiza en carrito (soporta detalles para combos) */
 function upsertCart(id,name,qty,price,details=null){
   const ix = cart.findIndex(x => x.id===id && JSON.stringify(x.details||null)===JSON.stringify(details||null));
   if(ix>-1){
@@ -361,14 +399,12 @@ function upsertCart(id,name,qty,price,details=null){
   }
   renderCart();
 }
-
 function removeItem(id,details){
   const ix = cart.findIndex(x => x.id===id && JSON.stringify(x.details||null)===JSON.stringify(details||null));
   if(ix>-1) cart.splice(ix,1);
   renderCart();
 }
 
-/* Refresca visible $ para todos los rows */
 function refreshVisiblePrices(){
   document.querySelectorAll(".item-row[data-id]").forEach(row => {
     const id = row.getAttribute("data-id");
@@ -376,7 +412,6 @@ function refreshVisiblePrices(){
     const pEl = row.querySelector("[data-price]") || row.querySelector(".price");
     if (pEl) pEl.textContent = formatMoney(it.price);
   });
-  // por si hay elementos con id="price-..."
   document.querySelectorAll("[id^='price-']").forEach(el => {
     const id = el.id.replace("price-","");
     const it = findById(id);
@@ -384,26 +419,46 @@ function refreshVisiblePrices(){
   });
 }
 
-/* ============== BUILDER de empanadas/canastitas ============== */
-let activeCombo=null; let saboresSel=new Map();
+/* ===== Builder empanadas/canastitas ===== */
+let activeCombo=null; let saboresSel=new Map(); let builderResolve=null; let selectOnly=false;
 
-function openBuilder(tipo){
-  const combos={unidad:0,media:1,docena:2};
-  activeCombo=CATALOG.empanadasCombos[combos[tipo]];
-  saboresSel=new Map();
+function openBuilder(tipoOrCfg){
+  const comboIndex = {unidad:0,media:1,docena:2};
+  let base, title, qtyInit=1, cfg={};
 
-  $("#builderTitle").textContent=`${activeCombo.name} — elegí ${activeCombo.size} sabor(es)`;
-  $("#faltan").textContent=`Te faltan ${activeCombo.size}`;
+  if (typeof tipoOrCfg === 'string') {
+    base = CATALOG.empanadasCombos[comboIndex[tipoOrCfg]];
+    title = base.name;
+    cfg = {baseSize: base.size, price: base.price, id: base.id};
+  } else {
+    cfg = tipoOrCfg;
+    title = cfg.title;
+  }
+
+  activeCombo = { id: cfg.id||"emp-custom", name: title, baseSize: cfg.baseSize, price: cfg.price||0, qty: qtyInit, size: cfg.baseSize*qtyInit };
+  saboresSel = new Map();
+  selectOnly = !!cfg.selectOnly;
+
+  $("#builderTitle").textContent = `${title} — elegí ${activeCombo.size} sabor(es)`;
+  $("#faltan").textContent = `Te faltan ${activeCombo.size}`;
+
+  const qty = $("#builderQty");
+  $("#qtyLabel").textContent = `Cantidad de ${title.toLowerCase()}`;
+  qty.value = 1;
+  qty.oninput = () => {
+    const v = Math.max(1, Number(qty.value||1));
+    activeCombo.qty = v;
+    activeCombo.size = activeCombo.baseSize * v;
+    let total=0; saboresSel.forEach(n=>total+=n);
+    const faltan = Math.max(0, activeCombo.size - total);
+    $("#builderTitle").textContent = `${title} — elegí ${activeCombo.size} sabor(es)`;
+    $("#faltan").innerHTML = faltan===0 ? `<span class="badge">¡Listo!</span> Ya podés confirmar` : `Te faltan <strong>${faltan}</strong>`;
+    $("#agregarCombo").disabled = faltan!==0;
+  };
 
   const grid=$("#saboresGrid"); grid.innerHTML="";
-  const section = (titulo) => {
-    const h = document.createElement("h4");
-    h.textContent = titulo;
-    h.style.margin = "6px 0";
-    h.style.gridColumn = "1 / -1";
-    return h;
-  };
-  const renderGroup = (list) => {
+  const section = t => { const h=document.createElement("h4"); h.textContent=t; h.style.margin="6px 0"; h.style.gridColumn="1 / -1"; return h; };
+  const renderGroup = list => {
     list.forEach(sabor=>{
       const row=document.createElement("div");
       row.className="sabor";
@@ -422,65 +477,74 @@ function openBuilder(tipo){
   grid.appendChild(section("Canastitas"));
   renderGroup(CATALOG.saboresCanastitas);
 
-  $("#agregarCombo").onclick=addComboToCart;
+  $("#agregarCombo").onclick = () => {
+    const list=[]; saboresSel.forEach((qty,sabor)=>list.push(`${sabor} x${qty}`));
+    const details=list.join(" · ");
+    if (selectOnly && builderResolve) { builderResolve(details); closeBuilder(); return; }
+    upsertCart(activeCombo.id+":"+Date.now(), `${activeCombo.name} (empanadas/canastitas) x${activeCombo.qty}`, activeCombo.qty, activeCombo.price*activeCombo.qty, details);
+    closeBuilder();
+  };
   $("#agregarCombo").disabled=true;
   $("#builder").showModal();
 }
-
 function chgSabor(sabor,delta){
-  const curr=(saboresSel.get(sabor)||0)+delta;
-  if(curr<0) return;
+  const curr=(saboresSel.get(sabor)||0)+delta; if(curr<0) return;
   let total=0; saboresSel.forEach(v=>total+=v);
-  const newTotal=total+delta;
-  if(newTotal>activeCombo.size) return;
+  const newTotal=total+delta; if(newTotal>activeCombo.size) return;
   if(curr===0) saboresSel.delete(sabor); else saboresSel.set(sabor,curr);
   $("#s-"+slug(sabor)).textContent=curr;
   const faltan=activeCombo.size-newTotal;
-  $("#faltan").innerHTML = faltan===0
-    ? `<span class="badge">¡Listo!</span> Ya podés agregarlo`
-    : `Te faltan <strong>${faltan}</strong>`;
+  $("#faltan").innerHTML = faltan===0 ? `<span class="badge">¡Listo!</span> Ya podés confirmar` : `Te faltan <strong>${faltan}</strong>`;
   $("#agregarCombo").disabled = faltan!==0;
 }
-
-function resetSabores(){
-  saboresSel=new Map();
-  $$("#saboresGrid strong[id^='s-']").forEach(el=>el.textContent="0");
-  $("#faltan").textContent=`Te faltan ${activeCombo.size}`;
-  $("#agregarCombo").disabled=true;
-}
-
-function addComboToCart(){
-  const list=[]; saboresSel.forEach((qty,sabor)=>{list.push(`${sabor} x${qty}`)});
-  const details=list.join(" · ");
-  // id único por timestamp para no mezclar combos
-  upsertCart(activeCombo.id+":"+Date.now(), activeCombo.name+" (empanadas/canastitas)", 1, activeCombo.price, details);
-  closeBuilder();
-}
+function resetSabores(){ saboresSel=new Map(); $$("#saboresGrid strong[id^='s-']").forEach(el=>el.textContent="0"); $("#faltan").textContent=`Te faltan ${activeCombo.size}`; $("#agregarCombo").disabled=true; }
 function closeBuilder(){ $("#builder").close(); }
-
-/* =================== PAGO DINÁMICO =================== */
-function selectedPayMethod(){
-  const r = document.querySelector('input[name="pay"]:checked');
-  return r ? r.value : 'efectivo';
+function chooseEmpanadas(baseSize){
+  return new Promise(resolve=>{
+    builderResolve = resolve;
+    openBuilder({title:`Empanadas (${baseSize})`, baseSize, price:0, id:"emp-promo", selectOnly:true});
+  });
 }
+
+/* ===== Picker especial ===== */
+function pickEspecial(){
+  return new Promise(resolve=>{
+    const dlg = $("#pickerEspecial");
+    const grid = $("#espGrid"); grid.innerHTML="";
+    let selected = null;
+    CATALOG.especiales.forEach(opt=>{
+      const row=document.createElement("div");
+      row.className="sabor";
+      row.innerHTML=`<div>${opt}</div><div><input type="radio" name="esp" value="${opt}"></div>`;
+      grid.appendChild(row);
+    });
+    grid.querySelectorAll('input[name="esp"]').forEach(r=>{
+      r.addEventListener('change',()=>{ selected=r.value; $("#confirmEsp").disabled=false; });
+    });
+    $("#confirmEsp").disabled=true;
+    $("#confirmEsp").onclick=()=>{ dlg.close(); resolve(selected); };
+    dlg.addEventListener('close', ()=>{ if(!selected) resolve(null); }, {once:true});
+    dlg.showModal();
+  });
+}
+
+/* ===== Pago ===== */
+function selectedPayMethod(){ const r=document.querySelector('input[name="pay"]:checked'); return r? r.value : 'efectivo'; }
 function updateMPText(){
-  const span = document.getElementById('mpText');
-  if (!span) return;
-  const total = document.getElementById('totalTxt')?.textContent || '$ 0';
-  span.textContent = `¡Perfecto! Transferí el monto total de ${total} y compartime el comprobante.`;
+  const span = $('#mpText'); if (!span) return;
+  const total = $('#totalTxt')?.textContent || '$ 0';
+  span.textContent = `¡Perfecto! Transferí el monto total de ${total} al alias "Pedro-mp" y compartime el comprobante.`;
 }
 function updatePayDetails(){
-  const metodo = selectedPayMethod();
-  const ef = document.getElementById('payEfectivo');
-  const mp = document.getElementById('payMP');
-  if (ef) ef.hidden = metodo !== 'efectivo';
-  if (mp) mp.hidden = metodo !== 'mp';
+  const m=selectedPayMethod();
+  $('#payEfectivo').hidden = m!=='efectivo';
+  $('#payMP').hidden       = m!=='mp';
   updateMPText();
 }
 
-/* =================== CART =================== */
+/* ===== Cart + Subtotal fijo ===== */
 function renderCart(){
-  const list=$("#cartList");
+  const list=$("#cartList"); if(!list) return;
   list.innerHTML=cart.length?"":"<div class='muted'>Tu carrito está vacío.</div>";
   let total=0;
   cart.forEach(item=>{
@@ -499,107 +563,178 @@ function renderCart(){
     list.appendChild(line);
     total+=(item.price||0)*item.qty;
   });
-  $("#totalTxt").textContent=formatMoney(total);
-  updatePayDetails(); // refresca texto MP con el total
+  const t = $("#totalTxt"); if (t) t.textContent = formatMoney(total);
+  $("#subtotalBarTxt").textContent = formatMoney(total); // barra fija
+  updatePayDetails();
 }
 
-/* =================== FINALIZAR (WhatsApp) =================== */
-function finalizar(metodo){
-  if(cart.length===0){ alert("Tu carrito está vacío."); return; }
-
-  // Datos del cliente
+/* ===== Comanda PNG (sin mostrar en la página) ===== */
+function buildTicketPNG(){
   const nombre = $('#inpNombre')?.value.trim() || "";
   const whatsapp = $('#inpWhatsapp')?.value.trim() || "";
   const direccion = $('#inpDireccion')?.value.trim() || "";
   const aclaracion = $('#inpAclaracion')?.value.trim() || "";
-
-  if (!nombre || !whatsapp || !direccion) {
-    alert("Por favor completá Nombre, WhatsApp y Dirección.");
-    return;
-  }
-
-  // Resumen del carrito y total
   const totalTxt = $("#totalTxt").textContent;
+  const metodo = selectedPayMethod();
+  const pagaConRaw = $('#inpPagaCon')?.value.trim() || "";
   const totalNum = Number(totalTxt.replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')) || 0;
-  const resumen = cart.map(i=>`• ${i.name} x${i.qty}${i.details? " ("+i.details+")":""}`).join("\n");
 
-  let msg = `Hola! Quiero hacer este pedido:\n\n${resumen}\n\nTotal: ${totalTxt}\n`;
-  msg += `\nDatos de entrega:\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDirección: ${direccion}\n`;
-  if (aclaracion) msg += `Aclaración: ${aclaracion}\n`;
+  const W=800,P=32,lineH=34; const itemsLines=[];
+  cart.forEach(i=>{ itemsLines.push(`${i.name} x${i.qty}`); if(i.details) itemsLines.push(`  - ${i.details}`); itemsLines.push(`  $ ${Number(i.price||0).toLocaleString('es-AR')}`); });
 
-  const metodoSel = metodo || selectedPayMethod();
-  if (metodoSel === 'efectivo') {
-    const pagaConRaw = $('#inpPagaCon')?.value.trim() || "";
-    let lineaEfectivo = "Pago en efectivo";
-    if (pagaConRaw) {
-      const pagaCon = Number(pagaConRaw.replace(/\./g,'').replace(',', '.'));
-      if (!isNaN(pagaCon) && pagaCon > 0) {
-        const vuelto = Math.max(0, pagaCon - totalNum);
-        lineaEfectivo += ` —  con $ ${pagaCon.toLocaleString('es-AR')}`;
-        if (vuelto > 0) lineaEfectivo += ` (vuelto $ ${vuelto.toLocaleString('es-AR')})`;
+  const canvas=document.createElement('canvas'); const N=14+itemsLines.length;
+  canvas.width=W; canvas.height=P*2+N*lineH;
+  const ctx=canvas.getContext('2d'); ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#000"; ctx.font="bold 28px system-ui,-apple-system,Segoe UI,Roboto,Arial";
+  let y=P; ctx.fillText("PIZZA EDU - COMANDA",P,y); y+=lineH;
+  ctx.font="16px system-ui"; ctx.fillText(new Date().toLocaleString(),P,y); y+=lineH*1.2;
+  ctx.font="bold 18px system-ui"; ctx.fillText("Cliente",P,y); y+=lineH;
+  ctx.font="16px system-ui";
+  ctx.fillText(`Nombre: ${nombre}`,P,y); y+=lineH;
+  ctx.fillText(`WhatsApp: ${whatsapp}`,P,y); y+=lineH;
+  ctx.fillText(`Dirección: ${direccion}`,P,y); y+=lineH;
+  if(aclaracion){ ctx.fillText(`Aclaración: ${aclaracion}`,P,y); y+=lineH; }
+  y+=8; ctx.font="bold 18px system-ui"; ctx.fillText("Pedido",P,y); y+=lineH;
+  ctx.font="16px system-ui"; itemsLines.forEach(l=>{ ctx.fillText(l,P,y); y+=lineH; });
+  y+=6; ctx.font="bold 18px system-ui"; ctx.fillText(`Total: ${totalTxt}`,P,y); y+=lineH;
+  ctx.font="16px system-ui";
+  if(metodo==='efectivo'){
+    let linea="Pago en efectivo";
+    if(pagaConRaw){
+      const pagaCon=Number(pagaConRaw.replace(/\./g,'').replace(',', '.'));
+      if(!isNaN(pagaCon)&&pagaCon>0){
+        const vuelto=Math.max(0,pagaCon-totalNum);
+        linea+=` — con $ ${pagaCon.toLocaleString('es-AR')}`;
+        if(vuelto>0) linea+=` (vuelto $ ${vuelto.toLocaleString('es-AR')})`;
       }
     }
-    msg += `\n${lineaEfectivo}`;
-  } else {
-  // MP: mensaje corto para WhatsApp
-  msg += `\nPago con Mercado Pago`;
-  // si querés, podés incluir alias pero sin la instrucción larga:
-  // msg += `\nPago con Mercado Pago — alias "Pedro-mp"`;
+    ctx.fillText(linea,P,y);
+  }else{
+    ctx.fillText('Pago con Mercado Pago — alias "Pedro-mp"',P,y);
+  }
+  const dataURL=canvas.toDataURL("image/png");
+  return dataURL;
 }
 
-  const phone="5491168604990"; // si querés, poné tu número (sin + ni 0): "54911XXXXXXXX"
-  const url=phone?`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+/* ===== Envío por WhatsApp ===== */
+function buildWhatsAppText(){
+  const nombre = $('#inpNombre')?.value.trim() || "";
+  const whatsapp = $('#inpWhatsapp')?.value.trim() || "";
+  const direccion = $('#inpDireccion')?.value.trim() || "";
+  const aclaracion = $('#inpAclaracion')?.value.trim() || "";
+  const totalTxt = $("#totalTxt").textContent;
+  const metodo = selectedPayMethod();
+
+  let resumen = "Hola! Quiero hacer este pedido:\n\n";
+  cart.forEach(i=>{
+    resumen += `• ${i.name} x${i.qty}\n`;
+    if(i.details) resumen += `  - ${i.details}\n`;
+  });
+  resumen += `\nTotal: ${totalTxt}\n\nDatos de entrega:\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDirección: ${direccion}`;
+  if(aclaracion) resumen += `\nAclaración: ${aclaracion}`;
+  resumen += `\n\n${metodo==='efectivo' ? 'Pago en efectivo' : 'Pago con Mercado Pago'}`;
+  return resumen;
+}
+
+async function shareTicketOrFallback(){
+  const pngData = buildTicketPNG();
+  try{
+    const blob = await (await fetch(pngData)).blob();
+    const file = new File([blob],"comanda.png",{type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files:[file], title:"Comanda", text:"Comanda de pedido" });
+      return;
+    }
+  }catch(_){}
+  // Fallback: mensaje de texto
+  const text = buildWhatsAppText();
+  const url = WHATSAPP_PHONE
+    ? `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`
+    : `https://wa.me/?text=${encodeURIComponent(text)}`;
   window.open(url,"_blank");
 }
 
-/* =================== SHEETS: cargar precios =================== */
-async function loadPricesFromSheet(){
-  try{
-    const rows = await fetch(PRICES_SHEET_URL + "?t=" + Date.now(), { cache:"no-store" })
-                  .then(r => r.json());
-    const map = new Map();
-    rows.forEach(r => {
-      const id = String(r.id || "").trim();               // ej: "promo-3-muzza"
-      const price = Number(String(r.precio || 0)          // ej: "30.000" o "30000"
-                     .replace(/\./g,"").replace(",", "."));
-      if (id) map.set(id, isFinite(price) ? price : 0);
-    });
-
-    // pisa los precios del catálogo
-    [...CATALOG.promos, ...CATALOG.pizzas, ...CATALOG.empanadasCombos].forEach(it=>{
-      if(map.has(it.id)) it.price = map.get(it.id);
-    });
-  }catch(e){
-    console.error("Sheet JSON error:", e);
-  }
+/* ===== Resumen (modal) ===== */
+function openSummary(){
+  const body=$("#summaryBody"); body.innerHTML="";
+  cart.forEach(i=>{
+    const div=document.createElement("div");
+    div.innerHTML = `<strong>${i.name}</strong> <span class="muted">x${i.qty}</span>` + (i.details?`<div class="muted" style="font-size:12px">${i.details}</div>`:"");
+    body.appendChild(div);
+  });
+  $("#sumTotalTxt").textContent = $("#totalTxt").textContent;
+  const dlg=$("#summaryDlg"); dlg.showModal();
+  $("#confirmSendBtn").onclick = async ()=>{ dlg.close(); await shareTicketOrFallback(); };
 }
 
+/* ===== FINALIZAR (paso 3) ===== */
+function finalizar(){
+  if(cart.length===0){ alert("Tu carrito está vacío."); return; }
+  const ok = $('#inpNombre').value && $('#inpWhatsapp').value && $('#inpDireccion').value;
+  if(!ok){ alert("Completá tus datos para continuar."); return; }
+  openSummary();
+}
 
-/* =================== INIT =================== */
+/* ===== SHEETS ===== */
+async function loadPricesFromSheet(){
+  try{
+    const rows = await fetch(PRICES_SHEET_URL + "?t=" + Date.now(), { cache:"no-store" }).then(r=>r.json());
+    const map=new Map();
+    rows.forEach(r=>{
+      const id=String(r.id||"").trim();
+      const price=Number(String(r.precio||0).replace(/\./g,"").replace(",", "."));
+      if(id) map.set(id, isFinite(price)?price:0);
+    });
+    [...CATALOG.promos, ...CATALOG.pizzas, ...CATALOG.empanadasCombos].forEach(it=>{ if(map.has(it.id)) it.price=map.get(it.id); });
+  }catch(e){ console.error("Sheet JSON error:", e); }
+}
+
+/* ===== Wizard ===== */
+let STEP=1;
+function updateSteps(){
+  $$(".step").forEach(el=>{
+    const n=Number(el.dataset.stepbtn);
+    el.classList.toggle("active", n===STEP);
+    el.classList.toggle("done", n<STEP);
+  });
+  $$("section[data-step]").forEach(sec=>{ sec.classList.toggle("hidden", Number(sec.dataset.step)!==STEP); });
+  $("#prevBtn").disabled = STEP===1;
+  $("#nextBtn").textContent = STEP<3 ? "Siguiente →" : "Finalizar pedido";
+}
+function nextStep(){
+  if (STEP===1 && cart.length===0) { alert("Agregá al menos un producto al carrito."); return; }
+  if (STEP===2){
+    const ok = $('#inpNombre').value && $('#inpWhatsapp').value && $('#inpDireccion').value;
+    if (!ok){ alert("Completá tus datos para continuar."); return; }
+  }
+  if (STEP<3){ STEP++; updateSteps(); window.scrollTo({top:0,behavior:'smooth'}); }
+  else { finalizar(); }
+}
+function prevStep(){ if(STEP>1){ STEP--; updateSteps(); window.scrollTo({top:0,behavior:'smooth'});} }
+
+/* ===== INIT ===== */
 async function init(){
-  await loadPricesFromSheet();   // 1) lee los precios
-  wireStaticRows();              // 2) conecta +/- y pone $ iniciales
-  refreshVisiblePrices();        // 3) por si hay <div id="price-...">
-  renderCart();                  // 4) calcula total
+  await loadPricesFromSheet();
+  wireStaticRows();
+  refreshVisiblePrices();
+  renderCart();
 
-// Rellenar con lo último guardado
-loadCustomer();
+  loadCustomer();
+  ['inpNombre','inpWhatsapp','inpDireccion','inpAclaracion'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.addEventListener('change',saveCustomer); el.addEventListener('blur',saveCustomer);
+  });
 
-// Guardar cuando el usuario complete o cambie algo
-['inpNombre','inpWhatsapp','inpDireccion','inpAclaracion'].forEach(id=>{
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener('change', saveCustomer);
-  el.addEventListener('blur',   saveCustomer);
-});
-
-  // radios de pago (esto ya lo tenías)
-  document.querySelectorAll('input[name="pay"]').forEach(r =>
-    r.addEventListener('change', updatePayDetails)
-  );
+  document.querySelectorAll('input[name="pay"]').forEach(r=> r.addEventListener('change', updatePayDetails));
   updatePayDetails();
+
+  $("#prevBtn").onclick = prevStep;
+  $("#nextBtn").onclick = nextStep;
+  $("#finalBtn").onclick = finalizar;
+  updateSteps();
 }
 init();
 </script>
 </body>
 </html>
+
