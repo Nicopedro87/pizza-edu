@@ -478,15 +478,29 @@ function openBuilder(tipoOrCfg){
   renderGroup(CATALOG.saboresCanastitas);
 
   $("#agregarCombo").onclick = () => {
-    const list=[]; saboresSel.forEach((qty,sabor)=>list.push(`${sabor} x${qty}`));
-    const details=list.join(" · ");
-    if (selectOnly && builderResolve) { builderResolve(details); closeBuilder(); return; }
-    upsertCart(activeCombo.id+":"+Date.now(), `${activeCombo.name} (empanadas/canastitas) x${activeCombo.qty}`, activeCombo.qty, activeCombo.price*activeCombo.qty, details);
+  const list = [];
+  saboresSel.forEach((qty, sabor) => list.push(`${sabor} x${qty}`));
+  const details = list.join(" · ");
+
+  if (selectOnly && builderResolve) {   // usado por promos
+    builderResolve(details);
     closeBuilder();
-  };
-  $("#agregarCombo").disabled=true;
-  $("#builder").showModal();
-}
+    return;
+  }
+
+  // ✅ price = precio unitario del combo (unidad / media / docena)
+  // ✅ qty   = cantidad de combos elegidos
+  // ✅ el nombre NO lleva "xN" (ya lo muestra el carrito)
+  upsertCart(
+    activeCombo.id + ":" + Date.now(),
+    `${activeCombo.name} (empanadas/canastitas)`,
+    activeCombo.qty,
+    activeCombo.price,
+    details
+  );
+
+  closeBuilder();
+};
 function chgSabor(sabor,delta){
   const curr=(saboresSel.get(sabor)||0)+delta; if(curr<0) return;
   let total=0; saboresSel.forEach(v=>total+=v);
