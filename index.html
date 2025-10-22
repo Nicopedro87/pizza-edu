@@ -54,6 +54,7 @@ summary::-webkit-details-marker{display:none}.chev{transition:transform .2s ease
 body{padding-bottom:60px}
 .subtotal-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;z-index:50}
 .subtotal-bar .line{max-width:960px;margin:0 auto;display:flex;justify-content:flex-end;font-weight:800}
+.hidden{display:none}
 </style>
 </head>
 <body>
@@ -67,7 +68,7 @@ body{padding-bottom:60px}
     </div>
   </header>
 
-  <!-- WIZARD: ahora 3 pasos -->
+  <!-- WIZARD: 3 pasos -->
   <div class="wizard">
     <div class="steps">
       <div class="step" data-stepbtn="1">1) Pedido</div>
@@ -80,7 +81,7 @@ body{padding-bottom:60px}
     </div>
   </div>
 
-  <!-- STEP 1: ELECCIÓN DEL PEDIDO -->
+  <!-- STEP 1 -->
   <section data-step="1">
     <details open>
       <summary>PROMOCIONES <span class="chev">▾</span></summary>
@@ -156,7 +157,7 @@ body{padding-bottom:60px}
     </details>
   </section>
 
-  <!-- STEP 2: DATOS -->
+  <!-- STEP 2 -->
   <section data-step="2" class="hidden">
     <section class="customer">
       <h2 style="margin: 8px 0;">Datos para el pedido</h2>
@@ -181,7 +182,7 @@ body{padding-bottom:60px}
     </section>
   </section>
 
-  <!-- STEP 3: PAGO -->
+  <!-- STEP 3 -->
   <section data-step="3" class="hidden">
     <h2 style="margin:0 0 8px;">Forma de pago</h2>
     <div class="payment">
@@ -193,12 +194,12 @@ body{padding-bottom:60px}
         <div class="field" style="max-width: 320px;">
           <label for="inpPagaCon">¿Con cuánto pagás?</label>
           <input id="inpPagaCon" type="number" inputmode="decimal" placeholder="Ej: 10000">
-          <small class="muted">Calculamos el vuelto en la comanda.</small>
+          <small class="muted">Calculamos el vuelto en el resumen.</small>
         </div>
       </div>
       <div id="payMP" hidden class="helper">
         <div id="mpText" class="muted" style="font-weight:600;"></div>
-        <small class="muted">Alias: <strong>Pedro-mp</strong></small>
+        <small class="muted">Alias: <strong>Mati.365 (Matias Fernandez)</strong></small>
       </div>
     </div>
 
@@ -273,7 +274,7 @@ body{padding-bottom:60px}
 <script>
 /* ===== CONFIG ===== */
 const PRICES_SHEET_URL = "https://opensheet.elk.sh/13M5CpzElPosI_bTuzFyTgwCjNKd6LOVspKGWROSAhhc/precios";
-const WHATSAPP_PHONE = "5491168604990"; // tu número (AR): 54 9 11 ...
+const WHATSAPP_PHONE = "5491140277117";
 
 /* ===== CATÁLOGO ===== */
 const CATALOG = {
@@ -298,8 +299,8 @@ const CATALOG = {
   ],
   empanadasCombos: [
     { id: "emp-unidad", name: "Por unidad", size: 1, price: 0 },
-    { id: "emp-media", name: "Media docena", size: 6, price: 0 },
-    { id: "emp-docena", name: "Docena", size: 12, price: 0 }
+    { id: "emp-media",  name: "Media docena", size: 6, price: 0 },
+    { id: "emp-docena", name: "Docena",       size: 12, price: 0 }
   ],
   saboresEmpanadas: ["Carne","Pollo","Jamón y queso","Pollo y roquefort","Jamón y roquefort","Panceta y ciruela"],
   saboresCanastitas: ["Choclo","Choclo y cebolla","Verdura y queso","Cebolla y roquefort","Caprese","Tomate y huevo","Cebolla y queso"],
@@ -419,6 +420,19 @@ function refreshVisiblePrices(){
   });
 }
 
+// ⬇️ ponelo junto a las demás helpers
+function removeOnePromoInstance(prefixId){
+  for (let i = cart.length - 1; i >= 0; i--) {
+    if (cart[i].id.startsWith(prefixId + ":")) {
+      cart.splice(i, 1);
+      renderCart();
+      return true;
+    }
+  }
+  return false;
+}
+
+
 /* ===== Builder empanadas/canastitas ===== */
 let activeCombo=null; let saboresSel=new Map(); let builderResolve=null; let selectOnly=false;
 
@@ -477,16 +491,29 @@ function openBuilder(tipoOrCfg){
   grid.appendChild(section("Canastitas"));
   renderGroup(CATALOG.saboresCanastitas);
 
+  // ✅ FIX: no duplicar la multiplicación de precio × cantidad
   $("#agregarCombo").onclick = () => {
-    const list=[]; saboresSel.forEach((qty,sabor)=>list.push(`${sabor} x${qty}`));
+    const list=[]; saboresSel.forEach((n,sabor)=>list.push(`${sabor} x${n}`));
     const details=list.join(" · ");
+
     if (selectOnly && builderResolve) { builderResolve(details); closeBuilder(); return; }
-    upsertCart(activeCombo.id+":"+Date.now(), `${activeCombo.name} (empanadas/canastitas) x${activeCombo.qty}`, activeCombo.qty, activeCombo.price*activeCombo.qty, details);
+
+    // price: precio unitario del combo (unidad/media/docena)
+    // qty: cantidad de combos
+    upsertCart(
+      activeCombo.id+":"+Date.now(),
+      `${activeCombo.name} (empanadas/canastitas)`,
+      activeCombo.qty,
+      activeCombo.price,
+      details
+    );
     closeBuilder();
   };
+
   $("#agregarCombo").disabled=true;
   $("#builder").showModal();
 }
+
 function chgSabor(sabor,delta){
   const curr=(saboresSel.get(sabor)||0)+delta; if(curr<0) return;
   let total=0; saboresSel.forEach(v=>total+=v);
@@ -533,7 +560,7 @@ function selectedPayMethod(){ const r=document.querySelector('input[name="pay"]:
 function updateMPText(){
   const span = $('#mpText'); if (!span) return;
   const total = $('#totalTxt')?.textContent || '$ 0';
-  span.textContent = `¡Perfecto! Transferí el monto total de ${total} al alias "Pedro-mp" y compartime el comprobante.`;
+  span.textContent = `¡Perfecto! Transferí el monto total de ${total} y compartime el comprobante.`;
 }
 function updatePayDetails(){
   const m=selectedPayMethod();
@@ -564,12 +591,13 @@ function renderCart(){
     total+=(item.price||0)*item.qty;
   });
   const t = $("#totalTxt"); if (t) t.textContent = formatMoney(total);
-  $("#subtotalBarTxt").textContent = formatMoney(total); // barra fija
+  $("#subtotalBarTxt").textContent = formatMoney(total);
   updatePayDetails();
 }
 
-/* ===== Comanda PNG (sin mostrar en la página) ===== */
-function buildTicketPNG(){
+/* ===== WhatsApp (texto directo al número) ===== */
+function buildWhatsAppText(){
+  const now = new Date().toLocaleString();
   const nombre = $('#inpNombre')?.value.trim() || "";
   const whatsapp = $('#inpWhatsapp')?.value.trim() || "";
   const direccion = $('#inpDireccion')?.value.trim() || "";
@@ -579,80 +607,48 @@ function buildTicketPNG(){
   const pagaConRaw = $('#inpPagaCon')?.value.trim() || "";
   const totalNum = Number(totalTxt.replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')) || 0;
 
-  const W=800,P=32,lineH=34; const itemsLines=[];
-  cart.forEach(i=>{ itemsLines.push(`${i.name} x${i.qty}`); if(i.details) itemsLines.push(`  - ${i.details}`); itemsLines.push(`  $ ${Number(i.price||0).toLocaleString('es-AR')}`); });
-
-  const canvas=document.createElement('canvas'); const N=14+itemsLines.length;
-  canvas.width=W; canvas.height=P*2+N*lineH;
-  const ctx=canvas.getContext('2d'); ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#000"; ctx.font="bold 28px system-ui,-apple-system,Segoe UI,Roboto,Arial";
-  let y=P; ctx.fillText("PIZZA EDU - COMANDA",P,y); y+=lineH;
-  ctx.font="16px system-ui"; ctx.fillText(new Date().toLocaleString(),P,y); y+=lineH*1.2;
-  ctx.font="bold 18px system-ui"; ctx.fillText("Cliente",P,y); y+=lineH;
-  ctx.font="16px system-ui";
-  ctx.fillText(`Nombre: ${nombre}`,P,y); y+=lineH;
-  ctx.fillText(`WhatsApp: ${whatsapp}`,P,y); y+=lineH;
-  ctx.fillText(`Dirección: ${direccion}`,P,y); y+=lineH;
-  if(aclaracion){ ctx.fillText(`Aclaración: ${aclaracion}`,P,y); y+=lineH; }
-  y+=8; ctx.font="bold 18px system-ui"; ctx.fillText("Pedido",P,y); y+=lineH;
-  ctx.font="16px system-ui"; itemsLines.forEach(l=>{ ctx.fillText(l,P,y); y+=lineH; });
-  y+=6; ctx.font="bold 18px system-ui"; ctx.fillText(`Total: ${totalTxt}`,P,y); y+=lineH;
-  ctx.font="16px system-ui";
-  if(metodo==='efectivo'){
-    let linea="Pago en efectivo";
-    if(pagaConRaw){
-      const pagaCon=Number(pagaConRaw.replace(/\./g,'').replace(',', '.'));
-      if(!isNaN(pagaCon)&&pagaCon>0){
-        const vuelto=Math.max(0,pagaCon-totalNum);
-        linea+=` — con $ ${pagaCon.toLocaleString('es-AR')}`;
-        if(vuelto>0) linea+=` (vuelto $ ${vuelto.toLocaleString('es-AR')})`;
-      }
+  let pago = (metodo==='efectivo') ? 'Efectivo' : 'Mercado Pago';
+  if (metodo==='efectivo' && pagaConRaw){
+    const pagaCon = Number(pagaConRaw.replace(/\./g,'').replace(',', '.'));
+    if(!isNaN(pagaCon)&&pagaCon>0){
+      const vuelto = Math.max(0, pagaCon-totalNum);
+      pago += ` — con $ ${pagaCon.toLocaleString('es-AR')}`;
+      if(vuelto>0) pago += ` (vuelto $ ${vuelto.toLocaleString('es-AR')})`;
     }
-    ctx.fillText(linea,P,y);
-  }else{
-    ctx.fillText('Pago con Mercado Pago — alias "Pedro-mp"',P,y);
   }
-  const dataURL=canvas.toDataURL("image/png");
-  return dataURL;
-}
 
-/* ===== Envío por WhatsApp ===== */
-function buildWhatsAppText(){
-  const nombre = $('#inpNombre')?.value.trim() || "";
-  const whatsapp = $('#inpWhatsapp')?.value.trim() || "";
-  const direccion = $('#inpDireccion')?.value.trim() || "";
-  const aclaracion = $('#inpAclaracion')?.value.trim() || "";
-  const totalTxt = $("#totalTxt").textContent;
-  const metodo = selectedPayMethod();
-
-  let resumen = "Hola! Quiero hacer este pedido:\n\n";
+  let msg = `PIZZA EDU\n${now}\n\n`;
+  msg += `Cliente:\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDirección: ${direccion}`;
+  if (aclaracion) msg += `\nAclaración: ${aclaracion}`;
+  msg += `\n\nPedido:\n`;
   cart.forEach(i=>{
-    resumen += `• ${i.name} x${i.qty}\n`;
-    if(i.details) resumen += `  - ${i.details}\n`;
+    msg += `• ${i.name} x${i.qty}\n`;
+    if(i.details) msg += `   ${i.details}\n`;
   });
-  resumen += `\nTotal: ${totalTxt}\n\nDatos de entrega:\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDirección: ${direccion}`;
-  if(aclaracion) resumen += `\nAclaración: ${aclaracion}`;
-  resumen += `\n\n${metodo==='efectivo' ? 'Pago en efectivo' : 'Pago con Mercado Pago'}`;
-  return resumen;
+  msg += `\nTotal: ${totalTxt}\n\nPago: ${pago}`;
+  return msg;
 }
 
-async function shareTicketOrFallback(){
-  const pngData = buildTicketPNG();
-  try{
-    const blob = await (await fetch(pngData)).blob();
-    const file = new File([blob],"comanda.png",{type:"image/png"});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({ files:[file], title:"Comanda", text:"Comanda de pedido" });
-      return;
-    }
-  }catch(_){}
-  // Fallback: mensaje de texto
-  const text = buildWhatsAppText();
-  const url = WHATSAPP_PHONE
-    ? `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`
-    : `https://wa.me/?text=${encodeURIComponent(text)}`;
-  window.open(url,"_blank");
+function isMobile(){
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 }
+
+function shareTicketOrFallback(){
+  const text = buildWhatsAppText();
+  const enc  = encodeURIComponent(text);
+
+  let url;
+  if (isMobile()) {
+    // 📱 abre la app móvil
+    url = `https://wa.me/${WHATSAPP_PHONE}?text=${enc}`;
+  } else {
+    // 💻 abre WhatsApp Web (evita 429 de wa.me en desktop)
+    url = `https://web.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${enc}`;
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 
 /* ===== Resumen (modal) ===== */
 function openSummary(){
@@ -664,10 +660,10 @@ function openSummary(){
   });
   $("#sumTotalTxt").textContent = $("#totalTxt").textContent;
   const dlg=$("#summaryDlg"); dlg.showModal();
-  $("#confirmSendBtn").onclick = async ()=>{ dlg.close(); await shareTicketOrFallback(); };
+  $("#confirmSendBtn").onclick = async ()=>{ dlg.close(); shareTicketOrFallback(); };
 }
 
-/* ===== FINALIZAR (paso 3) ===== */
+/* ===== FINALIZAR ===== */
 function finalizar(){
   if(cart.length===0){ alert("Tu carrito está vacío."); return; }
   const ok = $('#inpNombre').value && $('#inpWhatsapp').value && $('#inpDireccion').value;
@@ -737,3 +733,4 @@ init();
 </script>
 </body>
 </html>
+
